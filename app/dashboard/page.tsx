@@ -12,218 +12,109 @@ export default function DashboardHome() {
   const [storeUrl, setStoreUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [stats, setStats] = useState({ totalMenu: 0, totalPesanan: 0, pesananMenunggu: 0 });
-
   const [editing, setEditing] = useState(false);
-  const [namaUsaha, setNamaUsaha] = useState("");
-  const [deskripsi, setDeskripsi] = useState("");
-  const [noHp, setNoHp] = useState("");
-  const [jamOperasional, setJamOperasional] = useState("");
+  const [namaUsaha, setNamaUsaha] = useState(""); const [deskripsi, setDeskripsi] = useState("");
+  const [noHp, setNoHp] = useState(""); const [jamOperasional, setJamOperasional] = useState("");
   const [saving, setSaving] = useState(false);
 
   async function loadData() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const { data } = await supabase.from("umkm").select("*").eq("user_id", user.id).single();
     setUmkm(data as Umkm);
-
     if (data) {
-      if (typeof window !== "undefined") {
-        setStoreUrl(`${window.location.origin}/toko/${data.slug}`);
-      }
-      setNamaUsaha(data.nama_usaha);
-      setDeskripsi(data.deskripsi ?? "");
-      setNoHp(data.no_hp ?? "");
-      setJamOperasional(data.jam_operasional ?? "");
-
-      const [{ count: totalMenu }, { count: totalPesanan }, { count: pesananMenunggu }] =
-        await Promise.all([
-          supabase
-            .from("menu_items")
-            .select("*", { count: "exact", head: true })
-            .eq("umkm_id", data.id),
-          supabase
-            .from("orders")
-            .select("*", { count: "exact", head: true })
-            .eq("umkm_id", data.id),
-          supabase
-            .from("orders")
-            .select("*", { count: "exact", head: true })
-            .eq("umkm_id", data.id)
-            .eq("status", "pending"),
-        ]);
-      setStats({
-        totalMenu: totalMenu ?? 0,
-        totalPesanan: totalPesanan ?? 0,
-        pesananMenunggu: pesananMenunggu ?? 0,
-      });
+      if (typeof window !== "undefined") setStoreUrl(`${window.location.origin}/toko/${data.slug}`);
+      setNamaUsaha(data.nama_usaha); setDeskripsi(data.deskripsi ?? ""); setNoHp(data.no_hp ?? ""); setJamOperasional(data.jam_operasional ?? "");
+      const [{ count: a }, { count: b }, { count: c }] = await Promise.all([
+        supabase.from("menu_items").select("*", { count: "exact", head: true }).eq("umkm_id", data.id),
+        supabase.from("orders").select("*", { count: "exact", head: true }).eq("umkm_id", data.id),
+        supabase.from("orders").select("*", { count: "exact", head: true }).eq("umkm_id", data.id).eq("status", "pending"),
+      ]);
+      setStats({ totalMenu: a ?? 0, totalPesanan: b ?? 0, pesananMenunggu: c ?? 0 });
     }
     setLoading(false);
   }
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
+  function copyLink() { navigator.clipboard.writeText(storeUrl); setCopied(true); setTimeout(() => setCopied(false), 1500); }
 
-  function copyLink() {
-    navigator.clipboard.writeText(storeUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault(); if (!umkm) return; setSaving(true);
+    await supabase.from("umkm").update({ nama_usaha: namaUsaha, deskripsi, no_hp: noHp, jam_operasional: jamOperasional }).eq("id", umkm.id);
+    setSaving(false); setEditing(false); await loadData();
   }
 
-  async function handleSaveProfile(e: React.FormEvent) {
-    e.preventDefault();
-    if (!umkm) return;
-    setSaving(true);
-    await supabase
-      .from("umkm")
-      .update({ nama_usaha: namaUsaha, deskripsi, no_hp: noHp, jam_operasional: jamOperasional })
-      .eq("id", umkm.id);
-    setSaving(false);
-    setEditing(false);
-    await loadData();
-  }
+  if (loading) return <div className="flex h-40 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-sf-red border-t-transparent" /></div>;
+  if (!umkm) return <p className="text-sm text-sf-text-secondary">Data tidak ditemukan.</p>;
 
-  if (loading) return <p>Memuat...</p>;
-  if (!umkm) return <p>Data toko tidak ditemukan.</p>;
-
-  const qrUrl = storeUrl
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(storeUrl)}`
-    : "";
+  const qrUrl = storeUrl ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(storeUrl)}` : "";
 
   return (
     <div>
-      <div className="mb-1 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Informasi Toko</h1>
-        {!editing && (
-          <button
-            onClick={() => setEditing(true)}
-            className="flex items-center gap-1 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600"
-          >
-            <Pencil className="h-4 w-4" /> Edit Profil
-          </button>
+      <h1 className="mb-4 text-lg font-extrabold text-sf-text">Toko Saya</h1>
+
+      {/* Stats */}
+      <div className="mb-4 grid grid-cols-3 gap-3">
+        {[
+          { icon: UtensilsCrossed, label: "Menu", value: stats.totalMenu },
+          { icon: ShoppingBag, label: "Pesanan", value: stats.totalPesanan },
+          { icon: Clock, label: "Menunggu", value: stats.pesananMenunggu },
+        ].map(({ icon: Icon, label, value }) => (
+          <div key={label} className="rounded-2xl bg-white p-4 shadow-card text-center">
+            <Icon className="mx-auto mb-1 h-5 w-5 text-sf-red" />
+            <p className="text-xl font-extrabold text-sf-text">{value}</p>
+            <p className="text-[11px] text-sf-text-secondary">{label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Profile */}
+      <div className="rounded-2xl bg-white p-4 shadow-card">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-bold text-sf-text">Profil Toko</h2>
+          {!editing && (
+            <button onClick={() => setEditing(true)} className="flex items-center gap-1 rounded-lg bg-sf-bg px-3 py-1.5 text-xs font-medium text-sf-text-secondary">
+              <Pencil className="h-3.5 w-3.5" /> Edit
+            </button>
+          )}
+        </div>
+        {editing ? (
+          <form onSubmit={handleSave} className="space-y-2.5">
+            <input required value={namaUsaha} onChange={(e) => setNamaUsaha(e.target.value)} placeholder="Nama usaha" className="w-full rounded-xl border border-sf-border bg-sf-bg px-3.5 py-2.5 text-sm outline-none focus:border-sf-red" />
+            <textarea value={deskripsi} onChange={(e) => setDeskripsi(e.target.value)} placeholder="Deskripsi" rows={2} className="w-full rounded-xl border border-sf-border bg-sf-bg px-3.5 py-2.5 text-sm outline-none focus:border-sf-red" />
+            <input value={noHp} onChange={(e) => setNoHp(e.target.value)} placeholder="No. HP" className="w-full rounded-xl border border-sf-border bg-sf-bg px-3.5 py-2.5 text-sm outline-none focus:border-sf-red" />
+            <input value={jamOperasional} onChange={(e) => setJamOperasional(e.target.value)} placeholder="Jam operasional" className="w-full rounded-xl border border-sf-border bg-sf-bg px-3.5 py-2.5 text-sm outline-none focus:border-sf-red" />
+            <div className="flex gap-2">
+              <button disabled={saving} className="rounded-xl bg-sf-red px-4 py-2 text-xs font-bold text-white disabled:opacity-50">{saving ? "..." : "Simpan"}</button>
+              <button type="button" onClick={() => setEditing(false)} className="rounded-xl border border-sf-border px-4 py-2 text-xs text-sf-text-secondary">Batal</button>
+            </div>
+          </form>
+        ) : (
+          <div className="space-y-2 text-sm">
+            <div><p className="text-[11px] text-sf-text-secondary">Nama Usaha</p><p className="font-medium">{umkm.nama_usaha}</p></div>
+            <div><p className="text-[11px] text-sf-text-secondary">Deskripsi</p><p className="font-medium">{umkm.deskripsi || "-"}</p></div>
+            <div><p className="text-[11px] text-sf-text-secondary">No. HP</p><p className="font-medium">{umkm.no_hp || "-"}</p></div>
+            <div><p className="text-[11px] text-sf-text-secondary">Jam Operasional</p><p className="font-medium">{umkm.jam_operasional || "-"}</p></div>
+            <div>
+              <p className="text-[11px] text-sf-text-secondary">Link Toko</p>
+              <div className="flex items-center gap-2">
+                <a href={storeUrl} target="_blank" className="break-all text-xs font-medium text-sf-red underline">{storeUrl}</a>
+                <button onClick={copyLink} className="shrink-0 p-1">{copied ? <Check className="h-3.5 w-3.5 text-sf-green" /> : <Copy className="h-3.5 w-3.5 text-sf-text-secondary" />}</button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
-      <p className="mb-6 text-secondary">Ringkasan performa dan profil publik Anda.</p>
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-xl bg-white p-5 shadow-card">
-          <UtensilsCrossed className="mb-2 h-5 w-5 text-brand-500" />
-          <p className="text-sm text-secondary">Total Menu</p>
-          <p className="text-2xl font-bold">{stats.totalMenu}</p>
-        </div>
-        <div className="rounded-xl bg-white p-5 shadow-card">
-          <ShoppingBag className="mb-2 h-5 w-5 text-brand-500" />
-          <p className="text-sm text-secondary">Total Pesanan</p>
-          <p className="text-2xl font-bold">{stats.totalPesanan}</p>
-        </div>
-        <div className="rounded-xl bg-white p-5 shadow-card">
-          <Clock className="mb-2 h-5 w-5 text-brand-500" />
-          <p className="text-sm text-secondary">Menunggu Konfirmasi</p>
-          <p className="text-2xl font-bold">{stats.pesananMenunggu}</p>
-        </div>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-[1fr_260px]">
-        <div className="rounded-xl bg-white p-5 shadow-card">
-          {editing ? (
-            <form onSubmit={handleSaveProfile} className="space-y-3">
-              <div>
-                <label className="mb-1 block text-sm font-medium">Nama Usaha</label>
-                <input
-                  required
-                  value={namaUsaha}
-                  onChange={(e) => setNamaUsaha(e.target.value)}
-                  className="w-full rounded-lg border border-outline-variant px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium">Deskripsi</label>
-                <textarea
-                  value={deskripsi}
-                  onChange={(e) => setDeskripsi(e.target.value)}
-                  rows={2}
-                  className="w-full rounded-lg border border-outline-variant px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium">No. HP / WhatsApp</label>
-                <input
-                  value={noHp}
-                  onChange={(e) => setNoHp(e.target.value)}
-                  className="w-full rounded-lg border border-outline-variant px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium">Jam Operasional</label>
-                <input
-                  value={jamOperasional}
-                  onChange={(e) => setJamOperasional(e.target.value)}
-                  placeholder="Contoh: Senin-Jumat 08:00-20:00, Sabtu 09:00-21:00"
-                  className="w-full rounded-lg border border-outline-variant px-3 py-2"
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  disabled={saving}
-                  className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50"
-                >
-                  {saving ? "Menyimpan..." : "Simpan"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditing(false)}
-                  className="rounded-lg border border-outline-variant px-4 py-2 text-sm"
-                >
-                  Batal
-                </button>
-              </div>
-            </form>
-          ) : (
-            <>
-              <p className="text-sm text-secondary">Nama Usaha</p>
-              <p className="mb-3 font-medium">{umkm.nama_usaha}</p>
-              <p className="text-sm text-secondary">Deskripsi</p>
-              <p className="mb-3 font-medium">{umkm.deskripsi || "-"}</p>
-              <p className="text-sm text-secondary">No. HP / WhatsApp</p>
-              <p className="mb-3 font-medium">{umkm.no_hp || "-"}</p>
-              <p className="text-sm text-secondary">Jam Operasional</p>
-              <p className="mb-3 font-medium">{umkm.jam_operasional || "Belum diatur"}</p>
-              <p className="mb-1 text-sm text-secondary">Link Toko Publik (bagikan ke pelanggan)</p>
-              <div className="flex items-center gap-2">
-                <a href={storeUrl} target="_blank" className="break-all font-medium text-brand-500 underline">
-                  {storeUrl}
-                </a>
-                <button
-                  onClick={copyLink}
-                  className="shrink-0 rounded-lg border border-outline-variant p-1.5 hover:bg-surface-container"
-                  title="Salin link"
-                >
-                  {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="flex flex-col items-center rounded-xl bg-white p-5 text-center shadow-card">
-          <p className="mb-2 text-sm font-medium text-secondary">QR Code Toko</p>
-          {qrUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={qrUrl} alt="QR Code toko" className="mb-3 h-40 w-40" />
-          )}
-          <p className="mb-3 text-xs text-secondary">Scan untuk lihat menu lengkap</p>
-          {qrUrl && (
-            <a
-              href={qrUrl}
-              download={`qr-${umkm.slug}.png`}
-              className="flex items-center gap-1 text-sm font-medium text-brand-500 hover:underline"
-            >
-              <Download className="h-4 w-4" /> Unduh QR Code
-            </a>
-          )}
-        </div>
+      {/* QR Code */}
+      <div className="mt-3 rounded-2xl bg-white p-4 shadow-card text-center">
+        <p className="mb-2 text-xs font-bold text-sf-text">QR Code Toko</p>
+        {qrUrl && <img src={qrUrl} alt="QR" className="mx-auto mb-2 h-32 w-32" />}
+        {qrUrl && (
+          <a href={qrUrl} download={`qr-${umkm.slug}.png`} className="text-xs font-medium text-sf-red">
+            <Download className="mr-1 inline h-3.5 w-3.5" />Unduh QR
+          </a>
+        )}
       </div>
     </div>
   );

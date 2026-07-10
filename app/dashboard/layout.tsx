@@ -6,72 +6,53 @@ import { createClient } from "@/lib/supabase";
 import { Store, UtensilsCrossed, ShoppingBag, LogOut } from "lucide-react";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const supabase = createClient();
+  const pathname = usePathname(); const router = useRouter(); const supabase = createClient();
+  async function logout() { await supabase.auth.signOut(); router.push("/"); router.refresh(); }
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
-  }
+  const deskLink = (href: string, label: string, Icon: any) => (
+    <Link href={href} className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition ${pathname === href ? "bg-sf-red text-white shadow-sm" : "text-sf-text-secondary hover:bg-sf-bg hover:text-sf-text"}`}>
+      <Icon className="h-4 w-4 shrink-0" />{label}
+    </Link>
+  );
 
-  const linkClass = (href: string) =>
-    `flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium whitespace-nowrap transition ${
-      pathname === href
-        ? "bg-[#C1440E] text-white shadow-sm"
-        : "text-[#1C1410]/50 hover:bg-[#1C1410]/5 hover:text-[#1C1410]"
-    }`;
-
-  const mobileLinkClass = (href: string) =>
-    `flex flex-col items-center gap-0.5 rounded-lg px-2 py-1 text-[10px] font-medium transition ${
-      pathname === href ? "text-[#C1440E]" : "text-[#1C1410]/35"
-    }`;
+  const mobLink = (href: string, label: string, Icon: any) => (
+    <Link href={href} className={`flex flex-1 flex-col items-center gap-0.5 py-1.5 ${pathname === href ? "text-sf-red" : "text-sf-text-light"}`}>
+      <Icon className="h-5 w-5" /><span className="text-[10px] font-medium">{label}</span>
+    </Link>
+  );
 
   return (
-    <div className="flex min-h-screen flex-col pb-16 md:pb-0 md:flex-row">
+    <div className="min-h-screen bg-sf-bg pb-16 md:pb-0">
       {/* Desktop sidebar */}
-      <aside className="hidden shrink-0 border-r border-[#1C1410]/8 bg-white md:block md:w-56">
-        <div className="sticky top-0 flex h-screen flex-col p-4">
-          <Link href="/" className="mb-6 flex items-center gap-2 text-lg font-bold text-[#1C1410]">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#C1440E] text-sm font-bold text-white">P</span>
-            PesanUMKM
+      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-40 md:flex md:w-56 md:flex-col md:border-r md:border-sf-border md:bg-white">
+        <div className="flex h-full flex-col p-4">
+          <Link href="/" className="mb-6 flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sf-red text-sm font-extrabold text-white">P</div>
+            <span className="text-base font-extrabold text-sf-red">PesanUMKM</span>
           </Link>
           <nav className="flex flex-col space-y-1">
-            <Link href="/dashboard" className={linkClass("/dashboard")}>
-              <Store className="h-4 w-4 shrink-0" /> Toko Saya
-            </Link>
-            <Link href="/dashboard/menu" className={linkClass("/dashboard/menu")}>
-              <UtensilsCrossed className="h-4 w-4 shrink-0" /> Kelola Menu
-            </Link>
-            <Link href="/dashboard/orders" className={linkClass("/dashboard/orders")}>
-              <ShoppingBag className="h-4 w-4 shrink-0" /> Pesanan Masuk
-            </Link>
+            {deskLink("/dashboard", "Toko Saya", Store)}
+            {deskLink("/dashboard/menu", "Kelola Menu", UtensilsCrossed)}
+            {deskLink("/dashboard/orders", "Pesanan Masuk", ShoppingBag)}
           </nav>
-          <button onClick={handleLogout} className="mt-auto flex items-center gap-2 rounded-xl border border-[#1C1410]/10 px-3 py-2.5 text-sm text-[#1C1410]/50 transition hover:bg-[#1C1410]/5">
+          <button onClick={logout} className="mt-auto flex items-center gap-2 rounded-xl border border-sf-border px-3 py-2.5 text-sm text-sf-text-secondary transition hover:bg-sf-bg">
             <LogOut className="h-4 w-4" /> Keluar
           </button>
         </div>
       </aside>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-[#1C1410]/8 bg-white px-2 py-1.5 md:hidden">
-        <Link href="/dashboard" className={mobileLinkClass("/dashboard")}>
-          <Store className="h-5 w-5" /> Toko
-        </Link>
-        <Link href="/dashboard/menu" className={mobileLinkClass("/dashboard/menu")}>
-          <UtensilsCrossed className="h-5 w-5" /> Menu
-        </Link>
-        <Link href="/dashboard/orders" className={mobileLinkClass("/dashboard/orders")}>
-          <ShoppingBag className="h-5 w-5" /> Pesanan
-        </Link>
-        <button onClick={handleLogout} className="flex flex-col items-center gap-0.5 rounded-lg px-2 py-1 text-[10px] font-medium text-[#1C1410]/35">
-          <LogOut className="h-5 w-5" /> Keluar
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex items-center border-t border-sf-border bg-white safe-bottom md:hidden">
+        {mobLink("/dashboard", "Toko", Store)}
+        {mobLink("/dashboard/menu", "Menu", UtensilsCrossed)}
+        {mobLink("/dashboard/orders", "Pesanan", ShoppingBag)}
+        <button onClick={logout} className="flex flex-1 flex-col items-center gap-0.5 py-1.5 text-sf-text-light">
+          <LogOut className="h-5 w-5" /><span className="text-[10px] font-medium">Keluar</span>
         </button>
       </nav>
 
-      <main className="flex-1 bg-[#FAF6ED] p-4 md:p-8">
-        <div className="mx-auto max-w-container">{children}</div>
+      <main className="md:ml-56">
+        <div className="mx-auto max-w-container px-4 py-4 md:px-6 md:py-6">{children}</div>
       </main>
     </div>
   );

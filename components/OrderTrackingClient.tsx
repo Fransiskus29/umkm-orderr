@@ -6,8 +6,8 @@ import OrderProgressTracker from "./OrderProgressTracker";
 import { formatRupiah, shortOrderCode, type OrderStatus } from "@/lib/types";
 
 const statusLabel: Record<string, string> = {
-  pending: "Menunggu Konfirmasi",
-  diproses: "Sedang Diproses",
+  pending: "Menunggu",
+  diproses: "Diproses",
   selesai: "Selesai",
   dibatalkan: "Dibatalkan",
 };
@@ -15,8 +15,8 @@ const statusLabel: Record<string, string> = {
 const statusColor: Record<string, string> = {
   pending: "bg-amber-100 text-amber-700",
   diproses: "bg-blue-100 text-blue-700",
-  selesai: "bg-green-100 text-green-700",
-  dibatalkan: "bg-red-100 text-red-700",
+  selesai: "bg-emerald-100 text-emerald-700",
+  dibatalkan: "bg-red-100 text-red-600",
 };
 
 type OrderData = {
@@ -82,62 +82,41 @@ export default function OrderTrackingClient({
   const o = order;
 
   return (
-    <main className="min-h-screen bg-[#FAF6ED]">
-      <div className="mx-auto max-w-md px-4 py-6 sm:py-10">
-        <a href="/" className="mb-4 sm:mb-6 inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-[#1C1410]/50 transition hover:bg-[#1C1410]/5 hover:text-[#1C1410]">
-          &larr; Kembali
+    <main className="min-h-screen bg-sf-bg pb-8">
+      <div className="mx-auto max-w-container px-4 py-6">
+        <a href="/" className="mb-4 inline-flex items-center gap-1 text-sm text-sf-text-secondary">
+          &larr; Beranda
         </a>
 
-        <div className="mb-5 sm:mb-6 text-center">
-          <div className="mx-auto mb-3 sm:mb-4 flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-[#C1440E]/10 text-2xl sm:text-3xl">
+        <div className="mb-5 text-center">
+          <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-sf-red/10 text-3xl">
             {o.status === "selesai" ? "✅" : o.status === "dibatalkan" ? "❌" : "⏳"}
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#1C1410]">Terima Kasih!</h1>
-          <p className="mt-1 text-xs sm:text-sm text-[#1C1410]/50">
-            Pesanan Anda telah kami terima dan sedang diproses oleh penjual.
-          </p>
+          <h1 className="text-xl font-extrabold text-sf-text">Status Pesanan</h1>
+          <p className="mt-1 text-sm text-sf-text-secondary">Pantau pesananmu di sini</p>
         </div>
 
-        <div className="mb-3 sm:mb-4 flex items-center justify-between rounded-xl bg-white p-3 shadow-card">
-          <span className="font-mono text-xs text-[#1C1410]/40">{shortOrderCode(o.id)}</span>
-          <span className={`inline-block rounded-full px-2.5 sm:px-3 py-1 text-xs font-medium ${statusColor[o.status]}`}>
-            {statusLabel[o.status]}
-          </span>
+        <div className="mb-3 flex items-center justify-between rounded-2xl bg-white p-3 shadow-card">
+          <span className="font-mono text-[11px] text-sf-text-light">{shortOrderCode(o.id)}</span>
+          <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${statusColor[o.status]}`}>{statusLabel[o.status]}</span>
         </div>
 
-        <div className="mb-3 sm:mb-4 rounded-2xl bg-white p-4 sm:p-5 shadow-card">
+        <div className="mb-3 rounded-2xl bg-white p-4 shadow-card">
           <OrderProgressTracker status={o.status} />
         </div>
 
-        <div className="rounded-2xl bg-white p-4 sm:p-5 shadow-card">
-          <div className="mb-3">
-            <p className="text-xs text-[#1C1410]/40">Atas nama</p>
-            <p className="font-medium text-[#1C1410]">{o.nama_pelanggan}</p>
-          </div>
-          <div className="mb-3">
-            <p className="text-xs text-[#1C1410]/40">Metode</p>
-            <p className="font-medium text-[#1C1410] capitalize">
-              {o.metode === "pickup" ? "Ambil Sendiri" : "Antar ke " + o.alamat}
-            </p>
-          </div>
-
-          <div className="mt-3 sm:mt-4 space-y-1.5 border-t border-[#1C1410]/8 pt-3 sm:pt-4 text-xs sm:text-sm">
+        <div className="rounded-2xl bg-white p-4 shadow-card text-sm">
+          <div className="mb-2"><p className="text-[11px] text-sf-text-light">Atas nama</p><p className="font-medium">{o.nama_pelanggan}</p></div>
+          <div className="mb-2"><p className="text-[11px] text-sf-text-light">Metode</p><p className="font-medium">{o.metode === "pickup" ? "Ambil Sendiri" : "Antar ke " + o.alamat}</p></div>
+          <div className="mt-3 space-y-1 border-t border-sf-border pt-3">
             {items.map((it) => (
-              <div key={it.id} className="flex justify-between">
-                <span className="text-[#1C1410]/60">{it.qty}x {it.nama}</span>
-                <span className="font-medium text-[#1C1410]">{formatRupiah(it.harga * it.qty)}</span>
-              </div>
+              <div key={it.id} className="flex justify-between text-xs"><span className="text-sf-text-secondary">{it.qty}x {it.nama}</span><span className="font-medium">{formatRupiah(it.harga * it.qty)}</span></div>
             ))}
           </div>
-          <div className="mt-2.5 sm:mt-3 flex justify-between border-t border-[#1C1410]/8 pt-2.5 sm:pt-3 font-bold text-[#1C1410]">
-            <span>Total</span>
-            <span>{formatRupiah(o.total)}</span>
-          </div>
+          <div className="mt-2 flex justify-between border-t border-sf-border pt-2 font-extrabold"><span>Total</span><span className="text-sf-red">{formatRupiah(o.total)}</span></div>
         </div>
 
-        <p className="mt-3 sm:mt-4 text-center text-xs text-[#1C1410]/35">
-          Simpan link halaman ini untuk memantau status pesananmu.
-        </p>
+        <p className="mt-3 text-center text-[11px] text-sf-text-light">Simpan link ini untuk cek status pesananmu.</p>
       </div>
     </main>
   );

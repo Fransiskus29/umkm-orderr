@@ -2,38 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --charcoal: #1C1410;
-  --chili: #C1440E;
-  --gold: #E8A33D;
-  --cream: #FAF6ED;
+  --sf-red: #EE4D2D;
+  --sf-orange: #FF6036;
+  --sf-bg: #F5F5F5;
 }
 
 body {
-  @apply bg-surface font-sans text-ink;
+  @apply bg-sf-bg font-sans text-sf-text;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+::-webkit-scrollbar { width: 0; height: 0; }
 
-::-webkit-scrollbar-track {
-  @apply bg-transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply rounded-full bg-[#1C1410]/15;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-[#1C1410]/25;
+@layer utilities {
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 }

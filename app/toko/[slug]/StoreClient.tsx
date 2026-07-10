@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { formatRupiah, type MenuItem, type Umkm } from "@/lib/types";
 import Link from "next/link";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, ArrowLeft, Clock, Phone, Minus, Plus, X, ChevronDown } from "lucide-react";
 
 type CartLine = { item: MenuItem; qty: number };
 
@@ -112,113 +112,177 @@ export default function StoreClient({ umkm, menu }: { umkm: Umkm; menu: MenuItem
   }
 
   return (
-    <main className="min-h-screen bg-surface pb-28">
-      <header className="border-b border-surface-high bg-white">
-        <div className="mx-auto max-w-container px-4 py-6 lg:px-6">
-          <Link href="/" className="text-sm text-brand-500">
-            &larr; Semua UMKM
+    <main className="min-h-screen bg-[#FAF6ED] pb-28">
+      {/* Header */}
+      <header className="relative overflow-hidden border-b border-[#1C1410]/8 bg-white">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.06]"
+          style={{
+            backgroundImage: "radial-gradient(circle, #E8A33D 1px, transparent 1px)",
+            backgroundSize: "20px 20px",
+          }}
+        />
+        <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#C1440E] opacity-10 blur-3xl" />
+
+        <div className="relative mx-auto max-w-container px-4 py-6 lg:px-6">
+          <Link
+            href="/"
+            className="mb-4 inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-[#1C1410]/50 transition hover:bg-[#1C1410]/5 hover:text-[#1C1410]"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Semua UMKM
           </Link>
-          <h1 className="mt-2 text-2xl font-bold md:text-3xl">{umkm.nama_usaha}</h1>
-          {umkm.deskripsi && <p className="mt-1 text-secondary">{umkm.deskripsi}</p>}
-          {umkm.jam_operasional && (
-            <p className="mt-1 text-sm text-secondary">🕒 {umkm.jam_operasional}</p>
-          )}
+
+          <div className="flex items-start gap-4">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#C1440E] to-[#a83a0c] text-2xl font-bold text-white shadow-lg">
+              {umkm.nama_usaha.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-[#1C1410] md:text-3xl">{umkm.nama_usaha}</h1>
+              {umkm.deskripsi && (
+                <p className="mt-1 text-sm text-[#1C1410]/50">{umkm.deskripsi}</p>
+              )}
+              <div className="mt-2 flex flex-wrap gap-3 text-xs text-[#1C1410]/40">
+                {umkm.jam_operasional && (
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5" />
+                    {umkm.jam_operasional}
+                  </span>
+                )}
+                {umkm.no_hp && (
+                  <span className="flex items-center gap-1">
+                    <Phone className="h-3.5 w-3.5" />
+                    {umkm.no_hp}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </header>
 
+      {/* Menu Section */}
       <div className="mx-auto max-w-container px-4 py-6 lg:px-6">
-        <h2 className="mb-4 text-lg font-semibold">Menu</h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-[#1C1410]">Menu Tersedia</h2>
+          <span className="rounded-full bg-[#C1440E]/10 px-3 py-1 text-xs font-medium text-[#C1440E]">
+            {menu.length} item
+          </span>
+        </div>
+
         {menu.length === 0 ? (
-          <p className="text-secondary">Belum ada menu tersedia saat ini.</p>
+          <div className="rounded-2xl border-2 border-dashed border-[#1C1410]/10 bg-white p-12 text-center">
+            <p className="text-[#1C1410]/40">Belum ada menu tersedia saat ini.</p>
+          </div>
         ) : (
           <>
-            <div className="mb-4 flex gap-2 overflow-x-auto text-sm">
+            {/* Category Filter */}
+            <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
               {kategoriList.map((k) => (
                 <button
                   key={k}
                   onClick={() => setActiveKategori(k)}
-                  className={`shrink-0 rounded-full px-4 py-1.5 font-medium ${
+                  className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition ${
                     activeKategori === k
-                      ? "bg-brand-500 text-white"
-                      : "bg-surface-container text-secondary"
+                      ? "bg-[#C1440E] text-white shadow-sm"
+                      : "bg-white text-[#1C1410]/50 hover:bg-[#1C1410]/5"
                   }`}
                 >
                   {k}
                 </button>
               ))}
             </div>
+
+            {/* Menu Grid */}
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {filteredMenu.map((item) => {
-              const qtyInCart = cart[item.id]?.qty ?? 0;
-              return (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between overflow-hidden rounded-xl bg-white shadow-card"
-                >
-                  {item.foto_url && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={item.foto_url}
-                      alt={item.nama}
-                      className="h-20 w-20 shrink-0 object-cover"
-                    />
-                  )}
-                  <div className="flex flex-1 items-center justify-between p-4">
-                  <div>
-                    <h3 className="font-medium">{item.nama}</h3>
-                    {item.deskripsi && (
-                      <p className="text-sm text-secondary">{item.deskripsi}</p>
+                const qtyInCart = cart[item.id]?.qty ?? 0;
+                return (
+                  <div
+                    key={item.id}
+                    className="group overflow-hidden rounded-2xl border border-[#1C1410]/6 bg-white shadow-card transition hover:shadow-lg"
+                  >
+                    {item.foto_url && (
+                      <div className="relative h-40 overflow-hidden">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={item.foto_url}
+                          alt={item.nama}
+                          className="h-full w-full object-cover transition group-hover:scale-105"
+                        />
+                        {qtyInCart > 0 && (
+                          <div className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#C1440E] text-xs font-bold text-white shadow-md">
+                            {qtyInCart}
+                          </div>
+                        )}
+                      </div>
                     )}
-                    <p className="mt-1 font-semibold text-brand-500">
-                      {formatRupiah(item.harga)}
-                    </p>
-                  </div>
-                  {qtyInCart === 0 ? (
-                    <button
-                      onClick={() => addToCart(item)}
-                      className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
-                    >
-                      Tambah
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => changeQty(item.id, -1)}
-                        className="h-8 w-8 rounded-full border border-outline-variant font-bold"
-                      >
-                        -
-                      </button>
-                      <span className="w-5 text-center">{qtyInCart}</span>
-                      <button
-                        onClick={() => changeQty(item.id, 1)}
-                        className="h-8 w-8 rounded-full border border-outline-variant font-bold"
-                      >
-                        +
-                      </button>
+                    <div className="p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-[#1C1410]">{item.nama}</h3>
+                          {item.deskripsi && (
+                            <p className="mt-0.5 line-clamp-2 text-sm text-[#1C1410]/45">{item.deskripsi}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between">
+                        <p className="text-lg font-bold text-[#C1440E]">
+                          {formatRupiah(item.harga)}
+                        </p>
+                        {qtyInCart === 0 ? (
+                          <button
+                            onClick={() => addToCart(item)}
+                            className="rounded-xl bg-[#C1440E] px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-[#a83a0c] hover:shadow-md"
+                          >
+                            Tambah
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => changeQty(item.id, -1)}
+                              className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#1C1410]/10 text-[#1C1410] transition hover:bg-[#1C1410]/5"
+                            >
+                              <Minus className="h-4 w-4" />
+                            </button>
+                            <span className="w-8 text-center text-sm font-bold text-[#1C1410]">{qtyInCart}</span>
+                            <button
+                              onClick={() => changeQty(item.id, 1)}
+                              className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#C1440E] text-white transition hover:bg-[#a83a0c]"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
             </div>
           </>
         )}
       </div>
 
+      {/* Floating Cart Bar */}
       {itemCount > 0 && !showCheckout && (
-        <div className="fixed inset-x-0 bottom-0 border-t border-surface-high bg-white p-4 shadow-overlay">
+        <div className="fixed inset-x-0 bottom-0 border-t border-[#1C1410]/8 bg-white/95 p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-md">
           <div className="mx-auto flex max-w-container items-center justify-between px-2 lg:px-6">
-            <div className="flex items-center gap-2">
-              <ShoppingCart className="h-5 w-5 text-secondary" />
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <ShoppingCart className="h-6 w-6 text-[#C1440E]" />
+                <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-[#C1440E] text-[10px] font-bold text-white">
+                  {itemCount}
+                </span>
+              </div>
               <div>
-                <p className="text-sm text-secondary">{itemCount} item</p>
-                <p className="font-semibold">{formatRupiah(total)}</p>
+                <p className="text-xs text-[#1C1410]/40">{itemCount} item</p>
+                <p className="font-bold text-[#1C1410]">{formatRupiah(total)}</p>
               </div>
             </div>
             <button
               onClick={() => setShowCheckout(true)}
-              className="rounded-lg bg-brand-500 px-6 py-3 font-medium text-white hover:bg-brand-600"
+              className="rounded-xl bg-[#C1440E] px-6 py-3 font-medium text-white shadow-md transition hover:bg-[#a83a0c] hover:shadow-lg"
             >
               Checkout
             </button>
@@ -226,26 +290,30 @@ export default function StoreClient({ umkm, menu }: { umkm: Umkm; menu: MenuItem
         </div>
       )}
 
+      {/* Checkout Modal */}
       {showCheckout && (
         <div className="fixed inset-0 z-10 flex items-end bg-black/40 sm:items-center sm:justify-center">
-          <div className="max-h-[90vh] w-full overflow-y-auto rounded-t-2xl bg-white p-6 sm:max-w-md sm:rounded-2xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Konfirmasi Pesanan</h2>
-              <button onClick={() => setShowCheckout(false)} className="text-neutral-400">
-                &times;
+          <div className="max-h-[90vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 sm:max-w-md sm:rounded-3xl">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-[#1C1410]">Konfirmasi Pesanan</h2>
+              <button
+                onClick={() => setShowCheckout(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1C1410]/5 text-[#1C1410]/40 transition hover:bg-[#1C1410]/10"
+              >
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="mb-4 space-y-1 rounded-lg bg-neutral-50 p-3 text-sm">
+            <div className="mb-5 space-y-1.5 rounded-2xl bg-[#FAF6ED] p-4 text-sm">
               {lines.map((l) => (
                 <div key={l.item.id} className="flex justify-between">
-                  <span>
+                  <span className="text-[#1C1410]/70">
                     {l.qty}x {l.item.nama}
                   </span>
-                  <span>{formatRupiah(l.item.harga * l.qty)}</span>
+                  <span className="font-medium text-[#1C1410]">{formatRupiah(l.item.harga * l.qty)}</span>
                 </div>
               ))}
-              <div className="mt-2 flex justify-between border-t border-neutral-200 pt-2 font-semibold">
+              <div className="mt-2 flex justify-between border-t border-[#1C1410]/8 pt-2 font-bold text-[#1C1410]">
                 <span>Total</span>
                 <span>{formatRupiah(total)}</span>
               </div>
@@ -253,70 +321,68 @@ export default function StoreClient({ umkm, menu }: { umkm: Umkm; menu: MenuItem
 
             <form onSubmit={handleCheckout} className="space-y-3">
               <div>
-                <label className="mb-1 block text-sm font-medium">Nama</label>
+                <label className="mb-1.5 block text-sm font-medium text-[#1C1410]">Nama</label>
                 <input
                   required
                   value={nama}
                   onChange={(e) => setNama(e.target.value)}
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2"
+                  placeholder="Nama kamu"
+                  className="w-full rounded-xl border border-[#1C1410]/12 bg-[#FAF6ED] px-3.5 py-2.5 text-sm text-[#1C1410] outline-none placeholder:text-[#1C1410]/25 focus:border-[#C1440E] focus:ring-4 focus:ring-[#C1440E]/10"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium">No. HP / WhatsApp</label>
+                <label className="mb-1.5 block text-sm font-medium text-[#1C1410]">No. HP / WhatsApp</label>
                 <input
                   required
                   value={noHp}
                   onChange={(e) => setNoHp(e.target.value)}
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2"
+                  placeholder="08xxxxxxxxxx"
+                  className="w-full rounded-xl border border-[#1C1410]/12 bg-[#FAF6ED] px-3.5 py-2.5 text-sm text-[#1C1410] outline-none placeholder:text-[#1C1410]/25 focus:border-[#C1440E] focus:ring-4 focus:ring-[#C1440E]/10"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium">Metode</label>
+                <label className="mb-1.5 block text-sm font-medium text-[#1C1410]">Metode</label>
                 <div className="flex gap-3">
-                  <label className="flex items-center gap-1 text-sm">
-                    <input
-                      type="radio"
-                      checked={metode === "pickup"}
-                      onChange={() => setMetode("pickup")}
-                    />
+                  <label className="flex flex-1 cursor-pointer items-center gap-2 rounded-xl border border-[#1C1410]/12 bg-[#FAF6ED] px-3 py-2.5 text-sm transition has-[:checked]:border-[#C1440E] has-[:checked]:bg-[#C1440E]/5 has-[:checked]:text-[#C1440E]">
+                    <input type="radio" checked={metode === "pickup"} onChange={() => setMetode("pickup")} className="accent-[#C1440E]" />
                     Ambil Sendiri
                   </label>
-                  <label className="flex items-center gap-1 text-sm">
-                    <input
-                      type="radio"
-                      checked={metode === "delivery"}
-                      onChange={() => setMetode("delivery")}
-                    />
+                  <label className="flex flex-1 cursor-pointer items-center gap-2 rounded-xl border border-[#1C1410]/12 bg-[#FAF6ED] px-3 py-2.5 text-sm transition has-[:checked]:border-[#C1440E] has-[:checked]:bg-[#C1440E]/5 has-[:checked]:text-[#C1440E]">
+                    <input type="radio" checked={metode === "delivery"} onChange={() => setMetode("delivery")} className="accent-[#C1440E]" />
                     Antar
                   </label>
                 </div>
               </div>
               {metode === "delivery" && (
                 <div>
-                  <label className="mb-1 block text-sm font-medium">Alamat</label>
+                  <label className="mb-1.5 block text-sm font-medium text-[#1C1410]">Alamat</label>
                   <textarea
                     required
                     value={alamat}
                     onChange={(e) => setAlamat(e.target.value)}
-                    className="w-full rounded-lg border border-neutral-300 px-3 py-2"
+                    placeholder="Alamat lengkap pengantaran"
+                    className="w-full rounded-xl border border-[#1C1410]/12 bg-[#FAF6ED] px-3.5 py-2.5 text-sm text-[#1C1410] outline-none placeholder:text-[#1C1410]/25 focus:border-[#C1440E] focus:ring-4 focus:ring-[#C1440E]/10"
                     rows={2}
                   />
                 </div>
               )}
               <div>
-                <label className="mb-1 block text-sm font-medium">Catatan (opsional)</label>
+                <label className="mb-1.5 block text-sm font-medium text-[#1C1410]">Catatan (opsional)</label>
                 <input
                   value={catatan}
                   onChange={(e) => setCatatan(e.target.value)}
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2"
+                  placeholder="Contoh: Pedas level 3"
+                  className="w-full rounded-xl border border-[#1C1410]/12 bg-[#FAF6ED] px-3.5 py-2.5 text-sm text-[#1C1410] outline-none placeholder:text-[#1C1410]/25 focus:border-[#C1440E] focus:ring-4 focus:ring-[#C1440E]/10"
                 />
               </div>
-              {error && <p className="text-sm text-red-600">{error}</p>}
+              {error && (
+                <p className="rounded-lg bg-[#C1440E]/8 px-3 py-2 text-sm text-[#C1440E]">{error}</p>
+              )}
               <button
                 disabled={loading}
-                className="w-full rounded-lg bg-brand-600 py-2.5 font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                className="w-full rounded-xl bg-[#C1440E] py-3 font-medium text-white shadow-md transition hover:bg-[#a83a0c] disabled:opacity-50"
               >
-                {loading ? "Mengirim..." : "Buat Pesanan"}
+                {loading ? "Mengirim..." : `Buat Pesanan — ${formatRupiah(total)}`}
               </button>
             </form>
           </div>

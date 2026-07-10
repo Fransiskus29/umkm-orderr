@@ -4,6 +4,36 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+:root {
+  --charcoal: #1C1410;
+  --chili: #C1440E;
+  --gold: #E8A33D;
+  --cream: #FAF6ED;
+}
+
 body {
   @apply bg-surface font-sans text-ink;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-[#1C1410]/15;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-[#1C1410]/25;
 }

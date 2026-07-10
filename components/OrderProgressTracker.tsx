@@ -28,20 +28,22 @@ export default function OrderProgressTracker({ status }: { status: OrderStatus }
           <div key={step.key} className="flex flex-1 items-center last:flex-none">
             <div className="flex flex-col items-center gap-1">
               <div
-                className={`flex h-9 w-9 items-center justify-center rounded-full ${
-                  done ? "bg-brand-500 text-white" : "bg-surface-highest text-secondary"
+                className={`flex h-10 w-10 items-center justify-center rounded-full transition ${
+                  done
+                    ? "bg-[#C1440E] text-white shadow-sm"
+                    : "bg-[#1C1410]/5 text-[#1C1410]/30"
                 }`}
               >
                 <Icon className="h-4 w-4" />
               </div>
-              <span className={`text-xs font-medium ${done ? "text-ink" : "text-secondary"}`}>
+              <span className={`text-xs font-medium ${done ? "text-[#1C1410]" : "text-[#1C1410]/30"}`}>
                 {step.label}
               </span>
             </div>
             {i < steps.length - 1 && (
               <div
-                className={`mx-1 h-1 flex-1 rounded-full ${
-                  i < currentIndex ? "bg-brand-500" : "bg-surface-highest"
+                className={`mx-1.5 h-1 flex-1 rounded-full transition ${
+                  i < currentIndex ? "bg-[#C1440E]" : "bg-[#1C1410]/8"
                 }`}
               />
             )}

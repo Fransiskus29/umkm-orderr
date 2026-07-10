@@ -2,21 +2,30 @@ import Link from "next/link";
 
 export default function Navbar() {
   return (
-    <header className="border-b border-surface-high bg-white">
-      <div className="mx-auto flex max-w-container items-center justify-between px-4 py-4 lg:px-6">
-        <Link href="/" className="text-lg font-bold text-brand-500">
+    <header className="sticky top-0 z-30 border-b border-[#1C1410]/8 bg-white/80 backdrop-blur-md">
+      <div className="mx-auto flex max-w-container items-center justify-between px-4 py-3.5 lg:px-6">
+        <Link href="/" className="flex items-center gap-2.5 text-lg font-bold text-[#1C1410]">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#C1440E] text-sm font-bold text-white shadow-sm">
+            P
+          </span>
           PesanUMKM
         </Link>
-        <nav className="flex items-center gap-3 text-sm font-medium md:gap-4">
-          <Link href="/" className="hidden text-secondary hover:text-brand-500 sm:inline">
+        <nav className="flex items-center gap-2 text-sm font-medium md:gap-3">
+          <Link
+            href="/"
+            className="rounded-lg px-3 py-2 text-[#1C1410]/60 transition hover:bg-[#1C1410]/5 hover:text-[#1C1410] md:inline-flex"
+          >
             Jelajahi UMKM
           </Link>
-          <Link href="/login" className="text-secondary hover:text-brand-500">
+          <Link
+            href="/login"
+            className="rounded-lg px-3 py-2 text-[#1C1410]/60 transition hover:bg-[#1C1410]/5 hover:text-[#1C1410]"
+          >
             Masuk
           </Link>
           <Link
             href="/register"
-            className="rounded-lg bg-brand-500 px-4 py-2 text-white shadow-card hover:bg-brand-600"
+            className="rounded-xl bg-[#C1440E] px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-[#a83a0c] hover:shadow-md"
           >
             Daftarkan UMKM
           </Link>

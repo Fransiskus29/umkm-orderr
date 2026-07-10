@@ -10,6 +10,7 @@ export default async function HomePage() {
   const { data } = await supabase
     .from("umkm")
     .select("*")
+    .or("kategori_usaha.eq.Kuliner,kategori_usaha.is.null")
     .order("created_at", { ascending: false });
 
   const list = (data ?? []) as Umkm[];

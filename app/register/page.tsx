@@ -7,19 +7,21 @@ import Link from "next/link";
 
 function slugify(t: string) { return t.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, ""); }
 
+const JENIS_USAHA = ["Warung Makan", "Restoran", "Kedai Kopi", "Catering", "Bakso & Mie Ayam", "Jajanan & Camilan", "Minuman", "Lainnya"];
+
 export default function RegisterPage() {
   const router = useRouter(); const supabase = createClient();
   const [namaUsaha, setNamaUsaha] = useState(""); const [email, setEmail] = useState("");
   const [password, setPassword] = useState(""); const [noHp, setNoHp] = useState("");
-  const [deskripsi, setDeskripsi] = useState(""); const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [deskripsi, setDeskripsi] = useState(""); const [jenisUsaha, setJenisUsaha] = useState(JENIS_USAHA[0]);
+  const [error, setError] = useState<string | null>(null); const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setError(null); setLoading(true);
     const { data, error: ae } = await supabase.auth.signUp({ email, password });
     if (ae || !data.user) { setError(ae?.message || "Gagal."); setLoading(false); return; }
     const slug = slugify(namaUsaha) || "umkm";
-    const { error: ue } = await supabase.from("umkm").insert({ user_id: data.user.id, nama_usaha: namaUsaha, slug, deskripsi, no_hp: noHp });
+    const { error: ue } = await supabase.from("umkm").insert({ user_id: data.user.id, nama_usaha: namaUsaha, slug, deskripsi, no_hp: noHp, kategori_usaha: jenisUsaha });
     if (ue) { setError(ue.message); setLoading(false); return; }
     router.push("/dashboard"); router.refresh();
   }
@@ -33,6 +35,9 @@ export default function RegisterPage() {
           <p className="mt-1 text-sm text-sf-text-secondary">Mulai terima pesanan online</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-3">
+          <select value={jenisUsaha} onChange={(e) => setJenisUsaha(e.target.value)} className="w-full rounded-xl border border-sf-border bg-sf-bg px-4 py-3 text-sm outline-none focus:border-sf-red">
+            {JENIS_USAHA.map((j) => <option key={j} value={j}>{j}</option>)}
+          </select>
           <input required value={namaUsaha} onChange={(e) => setNamaUsaha(e.target.value)} placeholder="Nama Usaha" className="w-full rounded-xl border border-sf-border bg-sf-bg px-4 py-3 text-sm outline-none focus:border-sf-red" />
           <input value={deskripsi} onChange={(e) => setDeskripsi(e.target.value)} placeholder="Deskripsi singkat" className="w-full rounded-xl border border-sf-border bg-sf-bg px-4 py-3 text-sm outline-none focus:border-sf-red" />
           <input required value={noHp} onChange={(e) => setNoHp(e.target.value)} placeholder="No. HP / WhatsApp" className="w-full rounded-xl border border-sf-border bg-sf-bg px-4 py-3 text-sm outline-none focus:border-sf-red" />

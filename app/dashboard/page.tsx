@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase";
 import type { Umkm } from "@/lib/types";
-import { UtensilsCrossed, ShoppingBag, Clock, Copy, Check, Pencil, Download } from "lucide-react";
+import { UtensilsCrossed, ShoppingBag, Clock, Copy, Check, Pencil, Download, Camera } from "lucide-react";
 
 export default function DashboardHome() {
   const supabase = createClient();
@@ -16,6 +16,8 @@ export default function DashboardHome() {
   const [namaUsaha, setNamaUsaha] = useState(""); const [deskripsi, setDeskripsi] = useState("");
   const [noHp, setNoHp] = useState(""); const [jamOperasional, setJamOperasional] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   async function loadData() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -44,6 +46,20 @@ export default function DashboardHome() {
     setSaving(false); setEditing(false); await loadData();
   }
 
+  async function handleUploadFoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]; if (!file || !umkm) return;
+    setUploading(true);
+    const ext = file.name.split(".").pop() ?? "jpg";
+    const path = `${umkm.id}/${Date.now()}.${ext}`;
+    const { error: uploadErr } = await supabase.storage.from("toko-avatars").upload(path, file, { upsert: true });
+    if (!uploadErr) {
+      const { data: urlData } = supabase.storage.from("toko-avatars").getPublicUrl(path);
+      await supabase.from("umkm").update({ foto_url: urlData.publicUrl }).eq("id", umkm.id);
+      await loadData();
+    }
+    setUploading(false);
+  }
+
   if (loading) return <div className="flex h-40 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-sf-red border-t-transparent" /></div>;
   if (!umkm) return <p className="text-sm text-sf-text-secondary">Data tidak ditemukan.</p>;
 
@@ -70,6 +86,23 @@ export default function DashboardHome() {
 
       {/* Profile */}
       <div className="rounded-2xl bg-white p-4 shadow-card">
+        {/* Foto Profil */}
+        <div className="mb-4 flex justify-center">
+          <div className="relative">
+            {umkm.foto_url ? (
+              <img src={umkm.foto_url} alt="Foto Toko" className="h-20 w-20 rounded-full object-cover ring-4 ring-sf-red/10" />
+            ) : (
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-sf-red/10 to-sf-orange/10 text-2xl font-extrabold text-sf-red/30 ring-4 ring-sf-red/10">
+                {umkm.nama_usaha.charAt(0)}
+              </div>
+            )}
+            <button onClick={() => fileRef.current?.click()} disabled={uploading} className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-sf-red text-white shadow-lg transition hover:bg-sf-red-dark disabled:opacity-50">
+              <Camera className="h-4 w-4" />
+            </button>
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUploadFoto} />
+          </div>
+        </div>
+
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-bold text-sf-text">Profil Toko</h2>
           {!editing && (

@@ -78,8 +78,12 @@ export default function StoreClient({ umkm, menu }: { umkm: Umkm; menu: MenuItem
           </Link>
         </div>
         <div className="mx-auto max-w-container flex items-start gap-4 px-4 pb-4 md:px-6">
-          <div className="flex h-16 w-16 md:h-20 md:w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sf-red to-sf-orange text-2xl md:text-3xl font-extrabold text-white shadow-lg">
-            {umkm.nama_usaha.charAt(0).toUpperCase()}
+          <div className="flex h-16 w-16 md:h-20 md:w-20 shrink-0 items-center justify-center rounded-2xl overflow-hidden bg-gradient-to-br from-sf-red to-sf-orange shadow-lg">
+            {umkm.foto_url ? (
+              <img src={umkm.foto_url} alt={umkm.nama_usaha} className="h-full w-full object-cover" />
+            ) : (
+              <span className="text-2xl md:text-3xl font-extrabold text-white">{umkm.nama_usaha.charAt(0).toUpperCase()}</span>
+            )}
           </div>
           <div className="min-w-0 flex-1 pt-1">
             <h1 className="text-lg md:text-2xl font-extrabold text-sf-text">{umkm.nama_usaha}</h1>

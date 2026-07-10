@@ -7,6 +7,7 @@ export type Umkm = {
   no_hp: string | null;
   jam_operasional: string | null;
   kategori_usaha: string;
+  foto_url: string | null;
   created_at: string;
 };
 

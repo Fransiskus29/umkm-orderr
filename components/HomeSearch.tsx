@@ -96,8 +96,12 @@ export default function HomeSearch({ list }: { list: Umkm[] }) {
               <div className="space-y-3 md:hidden">
                 {filtered.map((u) => (
                   <Link key={u.id} href={`/toko/${u.slug}`} className="flex overflow-hidden rounded-2xl bg-white shadow-card transition active:scale-[0.98]">
-                    <div className="relative h-28 w-28 shrink-0 bg-gradient-to-br from-sf-red/10 to-sf-orange/10 flex items-center justify-center">
-                      <span className="text-4xl font-extrabold text-sf-red/20">{u.nama_usaha.charAt(0)}</span>
+                    <div className="relative h-28 w-28 shrink-0 bg-gradient-to-br from-sf-red/10 to-sf-orange/10 flex items-center justify-center overflow-hidden">
+                      {u.foto_url ? (
+                        <img src={u.foto_url} alt={u.nama_usaha} className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="text-4xl font-extrabold text-sf-red/20">{u.nama_usaha.charAt(0)}</span>
+                      )}
                       <div className="absolute bottom-0 left-0 rounded-tr-lg bg-sf-red px-2 py-0.5 text-[10px] font-bold text-white">PROMO</div>
                     </div>
                     <div className="flex flex-1 flex-col justify-between p-3">
@@ -119,8 +123,12 @@ export default function HomeSearch({ list }: { list: Umkm[] }) {
               <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4">
                 {filtered.map((u) => (
                   <Link key={u.id} href={`/toko/${u.slug}`} className="group overflow-hidden rounded-2xl bg-white shadow-card transition hover:shadow-hover active:scale-[0.98]">
-                    <div className="relative h-40 bg-gradient-to-br from-sf-red/10 to-sf-orange/10 flex items-center justify-center">
-                      <span className="text-5xl font-extrabold text-sf-red/20">{u.nama_usaha.charAt(0)}</span>
+                    <div className="relative h-40 bg-gradient-to-br from-sf-red/10 to-sf-orange/10 flex items-center justify-center overflow-hidden">
+                      {u.foto_url ? (
+                        <img src={u.foto_url} alt={u.nama_usaha} className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="text-5xl font-extrabold text-sf-red/20">{u.nama_usaha.charAt(0)}</span>
+                      )}
                       <div className="absolute bottom-0 left-0 rounded-tr-lg bg-sf-red px-2.5 py-1 text-xs font-bold text-white">PROMO</div>
                     </div>
                     <div className="p-4">

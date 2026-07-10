@@ -52,6 +52,7 @@ export default function OrdersPage() {
   }
 
   useEffect(() => {
+    let channel: any;
     async function init() {
       const {
         data: { user },
@@ -65,10 +66,25 @@ export default function OrdersPage() {
       if (umkm) {
         setUmkmId(umkm.id);
         await loadOrders(umkm.id);
+
+        channel = supabase
+          .channel("orders-realtime")
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "orders", filter: `umkm_id=eq.${umkm.id}` },
+            () => {
+              loadOrders(umkm.id);
+            }
+          )
+          .subscribe();
       }
       setLoading(false);
     }
     init();
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
   }, []);
 
   async function updateStatus(orderId: string, status: OrderStatus) {
@@ -90,7 +106,7 @@ export default function OrdersPage() {
             key={f}
             onClick={() => setFilter(f)}
             className={`rounded-full px-3 py-1 ${
-              filter === f ? "bg-brand-500 text-white" : "bg-surface-container text-secondary"
+              filter === f ? "bg-[#C1440E] text-white" : "bg-surface-container text-secondary"
             }`}
           >
             {f === "semua" ? "Semua" : statusLabel[f]}
@@ -117,9 +133,7 @@ export default function OrdersPage() {
             <div className="mb-2 space-y-0.5 text-sm text-neutral-700">
               {(itemsByOrder[order.id] ?? []).map((it) => (
                 <div key={it.id} className="flex justify-between">
-                  <span>
-                    {it.qty}x {it.nama}
-                  </span>
+                  <span>{it.qty}x {it.nama}</span>
                   <span>{formatRupiah(it.harga * it.qty)}</span>
                 </div>
               ))}
@@ -136,7 +150,7 @@ export default function OrdersPage() {
               <div className="flex gap-2">
                 <button
                   onClick={() => updateStatus(order.id, "diproses")}
-                  className="flex items-center gap-1 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600"
+                  className="flex items-center gap-1 rounded-lg bg-[#C1440E] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#a83a0c]"
                 >
                   <Check className="h-4 w-4" /> Terima
                 </button>

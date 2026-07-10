@@ -31,6 +31,7 @@ export type OrderStatus = "pending" | "diproses" | "selesai" | "dibatalkan";
 export type Order = {
   id: string;
   umkm_id: string;
+  user_id: string | null;
   nama_pelanggan: string;
   no_hp: string;
   alamat: string | null;

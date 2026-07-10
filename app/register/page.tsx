@@ -40,8 +40,7 @@ export default function RegisterPage() {
       return;
     }
 
-    const baseSlug = slugify(namaUsaha) || "umkm";
-    const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 6)}`;
+    const slug = slugify(namaUsaha) || "umkm";
 
     const { error: umkmError } = await supabase.from("umkm").insert({
       user_id: authData.user.id,

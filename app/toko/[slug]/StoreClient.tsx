@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { formatRupiah, type MenuItem, type Umkm } from "@/lib/types";
 import Link from "next/link";
-import { ShoppingCart, ArrowLeft, Clock, Phone, Minus, Plus, X, Star } from "lucide-react";
+import { ShoppingCart, ArrowLeft, Clock, Phone, Minus, Plus, X } from "lucide-react";
 
 type CartLine = { item: MenuItem; qty: number };
 
@@ -40,7 +40,6 @@ export default function StoreClient({ umkm, menu }: { umkm: Umkm; menu: MenuItem
   function addToCart(item: MenuItem) {
     setCart((prev) => ({ ...prev, [item.id]: { item, qty: (prev[item.id]?.qty ?? 0) + 1 } }));
   }
-
   function changeQty(itemId: string, delta: number) {
     setCart((prev) => {
       const ex = prev[itemId]; if (!ex) return prev;
@@ -49,12 +48,10 @@ export default function StoreClient({ umkm, menu }: { umkm: Umkm; menu: MenuItem
       return next;
     });
   }
-
   function handleCheckoutClick() {
     if (!user) { router.push(`/pelanggan/login?redirect=${encodeURIComponent(window.location.pathname)}`); return; }
     setShowCheckout(true);
   }
-
   async function handleCheckout(e: React.FormEvent) {
     e.preventDefault(); setError(null);
     if (!lines.length) { setError("Keranjang kosong."); return; }
@@ -73,22 +70,21 @@ export default function StoreClient({ umkm, menu }: { umkm: Umkm; menu: MenuItem
 
   return (
     <main className="min-h-screen bg-sf-bg pb-24 md:pb-8">
-      {/* Store Header */}
+      {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="mx-auto max-w-container px-4 py-3 md:px-6">
-          <Link href="/" className="inline-flex items-center gap-1 text-sm text-sf-text-secondary">
+          <Link href="/" className="inline-flex items-center gap-1 text-sm text-sf-text-secondary hover:text-sf-text">
             <ArrowLeft className="h-4 w-4" /> Beranda
           </Link>
         </div>
         <div className="mx-auto max-w-container flex items-start gap-4 px-4 pb-4 md:px-6">
-          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sf-red to-sf-orange text-3xl font-extrabold text-white shadow-lg">
+          <div className="flex h-16 w-16 md:h-20 md:w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sf-red to-sf-orange text-2xl md:text-3xl font-extrabold text-white shadow-lg">
             {umkm.nama_usaha.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1 pt-1">
-            <h1 className="text-xl font-extrabold text-sf-text md:text-2xl">{umkm.nama_usaha}</h1>
+            <h1 className="text-lg md:text-2xl font-extrabold text-sf-text">{umkm.nama_usaha}</h1>
             {umkm.deskripsi && <p className="mt-0.5 text-sm text-sf-text-secondary line-clamp-1">{umkm.deskripsi}</p>}
             <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-sf-text-secondary">
-              <span className="flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-sf-star text-sf-star" />4.8</span>
               {umkm.jam_operasional && <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{umkm.jam_operasional}</span>}
               {umkm.no_hp && <span className="flex items-center gap-1"><Phone className="h-3.5 w-3.5" />{umkm.no_hp}</span>}
             </div>
@@ -109,7 +105,7 @@ export default function StoreClient({ umkm, menu }: { umkm: Umkm; menu: MenuItem
         </div>
       )}
 
-      {/* Menu List */}
+      {/* Menu */}
       <div className="mx-auto max-w-container px-4 pt-4 md:px-6">
         {menu.length === 0 ? (
           <div className="rounded-2xl bg-white p-10 text-center shadow-card">
@@ -117,17 +113,23 @@ export default function StoreClient({ umkm, menu }: { umkm: Umkm; menu: MenuItem
             <p className="mt-3 text-sm text-sf-text-secondary">Belum ada menu tersedia.</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
             {filteredMenu.map((item) => {
               const qty = cart[item.id]?.qty ?? 0;
               return (
-                <div key={item.id} className="flex gap-3 rounded-2xl bg-white p-3 shadow-card">
-                  {/* Info */}
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-bold text-sf-text line-clamp-1">{item.nama}</h3>
+                <div key={item.id} className="flex gap-3 rounded-2xl bg-white p-3 shadow-card md:p-0 md:overflow-hidden">
+                  {item.foto_url && (
+                    <div className="relative h-20 w-20 md:h-full md:w-full md:max-h-44 shrink-0 overflow-hidden rounded-xl md:rounded-none md:rounded-t-2xl">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={item.foto_url} alt={item.nama} className="h-full w-full object-cover" />
+                      {qty > 0 && <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-sf-red text-[10px] font-bold text-white shadow">{qty}</div>}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1 md:p-4">
+                    <h3 className="text-sm font-bold text-sf-text line-clamp-1 md:text-base">{item.nama}</h3>
                     {item.deskripsi && <p className="mt-0.5 text-xs text-sf-text-secondary line-clamp-2">{item.deskripsi}</p>}
-                    <div className="mt-2 flex items-center justify-between">
-                      <p className="text-sm font-extrabold text-sf-red">{formatRupiah(item.harga)}</p>
+                    <div className="mt-2 flex items-center justify-between md:mt-3">
+                      <p className="text-sm md:text-base font-extrabold text-sf-red">{formatRupiah(item.harga)}</p>
                       {qty === 0 ? (
                         <button onClick={() => addToCart(item)} className="rounded-lg border border-sf-red px-3 py-1.5 text-xs font-bold text-sf-red transition hover:bg-sf-red hover:text-white">Tambah</button>
                       ) : (
@@ -139,14 +141,6 @@ export default function StoreClient({ umkm, menu }: { umkm: Umkm; menu: MenuItem
                       )}
                     </div>
                   </div>
-                  {/* Foto */}
-                  {item.foto_url && (
-                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={item.foto_url} alt={item.nama} className="h-full w-full object-cover" />
-                      {qty > 0 && <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-sf-red text-[10px] font-bold text-white shadow">{qty}</div>}
-                    </div>
-                  )}
                 </div>
               );
             })}
@@ -165,7 +159,7 @@ export default function StoreClient({ umkm, menu }: { umkm: Umkm; menu: MenuItem
               </div>
               <p className="text-sm font-extrabold text-sf-text">{formatRupiah(total)}</p>
             </div>
-            <button onClick={handleCheckoutClick} className="rounded-xl bg-sf-red px-6 py-3 text-sm font-bold text-white transition hover:bg-sf-red-dark">
+            <button onClick={handleCheckoutClick} className="rounded-xl bg-sf-red px-5 md:px-6 py-3 text-sm font-bold text-white transition hover:bg-sf-red-dark">
               {user ? "Pesan Sekarang" : "Login untuk Pesan"}
             </button>
           </div>

@@ -4,11 +4,11 @@ const config: Config = {
   theme: {
     container: {
       center: true,
-      padding: { DEFAULT: "16px", md: "20px" },
+      padding: { DEFAULT: "16px", md: "24px", lg: "32px" },
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
       },
       colors: {
         sf: {
@@ -74,7 +74,7 @@ const config: Config = {
         "3xl": "1.25rem",
       },
       maxWidth: {
-        container: "480px",
+        container: "960px",
       },
     },
   },

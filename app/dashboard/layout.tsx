@@ -10,8 +10,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   async function logout() { await supabase.auth.signOut(); router.push("/"); router.refresh(); }
 
   const deskLink = (href: string, label: string, Icon: any) => (
-    <Link href={href} className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition ${pathname === href ? "bg-sf-red text-white shadow-sm" : "text-sf-text-secondary hover:bg-sf-bg hover:text-sf-text"}`}>
-      <Icon className="h-4 w-4 shrink-0" />{label}
+    <Link href={href} className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition ${pathname === href ? "bg-sf-red text-white shadow-sm" : "text-sf-text-secondary hover:bg-sf-bg hover:text-sf-text"}`}>
+      <Icon className="h-4.5 w-4.5 shrink-0" />{label}
     </Link>
   );
 
@@ -24,18 +24,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen bg-sf-bg pb-16 md:pb-0">
       {/* Desktop sidebar */}
-      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-40 md:flex md:w-56 md:flex-col md:border-r md:border-sf-border md:bg-white">
-        <div className="flex h-full flex-col p-4">
-          <Link href="/" className="mb-6 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sf-red text-sm font-extrabold text-white">P</div>
-            <span className="text-base font-extrabold text-sf-red">PesanUMKM</span>
+      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-40 md:flex md:w-60 md:flex-col md:border-r md:border-sf-border md:bg-white">
+        <div className="flex h-full flex-col p-5">
+          <Link href="/" className="mb-8 flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sf-red text-sm font-extrabold text-white">P</div>
+            <span className="text-lg font-extrabold text-sf-red">PesanUMKM</span>
           </Link>
           <nav className="flex flex-col space-y-1">
             {deskLink("/dashboard", "Toko Saya", Store)}
             {deskLink("/dashboard/menu", "Kelola Menu", UtensilsCrossed)}
             {deskLink("/dashboard/orders", "Pesanan Masuk", ShoppingBag)}
           </nav>
-          <button onClick={logout} className="mt-auto flex items-center gap-2 rounded-xl border border-sf-border px-3 py-2.5 text-sm text-sf-text-secondary transition hover:bg-sf-bg">
+          <button onClick={logout} className="mt-auto flex items-center gap-2.5 rounded-xl border border-sf-border px-3 py-2.5 text-sm text-sf-text-secondary transition hover:bg-sf-bg">
             <LogOut className="h-4 w-4" /> Keluar
           </button>
         </div>
@@ -51,8 +51,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </button>
       </nav>
 
-      <main className="md:ml-56">
-        <div className="mx-auto max-w-container px-4 py-4 md:px-6 md:py-6">{children}</div>
+      <main className="md:ml-60">
+        <div className="mx-auto max-w-container px-4 py-4 md:px-8 md:py-6">{children}</div>
       </main>
     </div>
   );

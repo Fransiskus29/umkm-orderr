@@ -8,7 +8,17 @@ export type Umkm = {
   jam_operasional: string | null;
   kategori_usaha: string;
   foto_url: string | null;
+  info_pembayaran: InfoPembayaran | null;
   created_at: string;
+};
+
+export type InfoPembayaran = {
+  bank_nama: string;
+  bank_rekening: string;
+  bank_atas_nama: string;
+  ewallet_nama: string;
+  ewallet_nomor: string;
+  qris_url: string;
 };
 
 export type MenuItem = {
@@ -30,6 +40,15 @@ export const shortOrderCode = (id: string) =>
 
 export type OrderStatus = "pending" | "diproses" | "selesai" | "dibatalkan";
 
+export type MetodeBayar = "cash" | "transfer" | "ewallet" | "qris";
+
+export const METODE_BAYAR_LABEL: Record<MetodeBayar, string> = {
+  cash: "Bayar di Tempat",
+  transfer: "Transfer Bank",
+  ewallet: "E-Wallet",
+  qris: "QRIS",
+};
+
 export type Order = {
   id: string;
   umkm_id: string;
@@ -38,6 +57,7 @@ export type Order = {
   no_hp: string;
   alamat: string | null;
   metode: "pickup" | "delivery";
+  metode_bayar: MetodeBayar;
   catatan: string | null;
   status: OrderStatus;
   total: number;

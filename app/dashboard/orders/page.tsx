@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase";
-import { formatRupiah, shortOrderCode, type Order, type OrderItem, type OrderStatus } from "@/lib/types";
+import { formatRupiah, shortOrderCode, type Order, type OrderItem, type OrderStatus, type MetodeBayar, METODE_BAYAR_LABEL } from "@/lib/types";
 import { Check, X } from "lucide-react";
 
 const sLabel: Record<string, string> = { pending: "Menunggu", diproses: "Diproses", selesai: "Selesai", dibatalkan: "Dibatalkan" };
@@ -62,7 +62,7 @@ export default function OrdersPage() {
               <div>
                 <p className="text-[11px] font-mono text-sf-text-light">{shortOrderCode(o.id)}</p>
                 <p className="text-sm font-bold text-sf-text">{o.nama_pelanggan}</p>
-                <p className="text-[11px] text-sf-text-secondary">{o.no_hp} · {o.metode === "pickup" ? "Ambil" : "Antar"}</p>
+                <p className="text-[11px] text-sf-text-secondary">{o.no_hp} · {o.metode === "pickup" ? "Ambil" : "Antar"} · {METODE_BAYAR_LABEL[((o as any).metode_bayar || "cash") as MetodeBayar]}</p>
               </div>
               <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${sColor[o.status]}`}>{sLabel[o.status]}</span>
             </div>

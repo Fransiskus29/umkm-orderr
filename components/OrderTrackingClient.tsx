@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase";
 import OrderProgressTracker from "./OrderProgressTracker";
-import { formatRupiah, shortOrderCode, type OrderStatus } from "@/lib/types";
+import { formatRupiah, shortOrderCode, type OrderStatus, type MetodeBayar, METODE_BAYAR_LABEL } from "@/lib/types";
 
 const statusLabel: Record<string, string> = {
   pending: "Menunggu",
@@ -25,6 +25,7 @@ type OrderData = {
   no_hp: string;
   alamat: string | null;
   metode: string;
+  metode_bayar: MetodeBayar;
   catatan: string | null;
   status: OrderStatus;
   total: number;
@@ -53,7 +54,7 @@ export default function OrderTrackingClient({
   const refreshOrder = useCallback(async () => {
     const { data } = await supabase
       .from("orders")
-      .select("id, nama_pelanggan, no_hp, alamat, metode, catatan, status, total")
+      .select("id, nama_pelanggan, no_hp, alamat, metode, metode_bayar, catatan, status, total")
       .eq("id", orderId)
       .single();
     if (data) setOrder((prev) => ({ ...prev, ...data }));
@@ -108,6 +109,7 @@ export default function OrderTrackingClient({
         <div className="rounded-2xl bg-white p-4 shadow-card text-sm">
           <div className="mb-2"><p className="text-[11px] text-sf-text-light">Atas nama</p><p className="font-medium">{o.nama_pelanggan}</p></div>
           <div className="mb-2"><p className="text-[11px] text-sf-text-light">Metode</p><p className="font-medium">{o.metode === "pickup" ? "Ambil Sendiri" : "Antar ke " + o.alamat}</p></div>
+          <div className="mb-2"><p className="text-[11px] text-sf-text-light">Pembayaran</p><p className="font-medium">{METODE_BAYAR_LABEL[o.metode_bayar || "cash"]}</p></div>
           <div className="mt-3 space-y-1 border-t border-sf-border pt-3">
             {items.map((it) => (
               <div key={it.id} className="flex justify-between text-xs"><span className="text-sf-text-secondary">{it.qty}x {it.nama}</span><span className="font-medium">{formatRupiah(it.harga * it.qty)}</span></div>

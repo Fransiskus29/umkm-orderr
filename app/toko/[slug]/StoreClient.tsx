@@ -3,11 +3,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { formatRupiah, type MenuItem, type Umkm } from "@/lib/types";
+import { formatRupiah, type MenuItem, type Umkm, type MetodeBayar, METODE_BAYAR_LABEL } from "@/lib/types";
 import Link from "next/link";
-import { ShoppingCart, ArrowLeft, Clock, Phone, Minus, Plus, X } from "lucide-react";
+import { ShoppingCart, ArrowLeft, Clock, Phone, Minus, Plus, X, CreditCard, Banknote, Wallet, QrCode, Copy, Check } from "lucide-react";
 
 type CartLine = { item: MenuItem; qty: number };
+
+const METODE_BAYAR_ICON: Record<MetodeBayar, typeof Banknote> = {
+  cash: Banknote,
+  transfer: CreditCard,
+  ewallet: Wallet,
+  qris: QrCode,
+};
 
 export default function StoreClient({ umkm, menu }: { umkm: Umkm; menu: MenuItem[] }) {
   const router = useRouter();
@@ -19,10 +26,13 @@ export default function StoreClient({ umkm, menu }: { umkm: Umkm; menu: MenuItem
   const [noHp, setNoHp] = useState("");
   const [alamat, setAlamat] = useState("");
   const [metode, setMetode] = useState<"pickup" | "delivery">("pickup");
+  const [metodeBayar, setMetodeBayar] = useState<MetodeBayar>("cash");
   const [catatan, setCatatan] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [orderDone, setOrderDone] = useState<any>(null);
+  const [copied, setCopied] = useState("");
 
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setUser(data.user)); }, []);
 
@@ -36,6 +46,8 @@ export default function StoreClient({ umkm, menu }: { umkm: Umkm; menu: MenuItem
   }, [menu]);
 
   const filteredMenu = activeKategori === "Semua" ? menu : menu.filter((m) => m.kategori === activeKategori);
+
+  const infoBayar = umkm.info_pembayaran as any;
 
   function addToCart(item: MenuItem) {
     setCart((prev) => ({ ...prev, [item.id]: { item, qty: (prev[item.id]?.qty ?? 0) + 1 } }));
@@ -52,20 +64,90 @@ export default function StoreClient({ umkm, menu }: { umkm: Umkm; menu: MenuItem
     if (!user) { router.push(`/pelanggan/login?redirect=${encodeURIComponent(window.location.pathname)}`); return; }
     setShowCheckout(true);
   }
+  function copyText(text: string, label: string) {
+    navigator.clipboard.writeText(text); setCopied(label); setTimeout(() => setCopied(""), 1500);
+  }
+
   async function handleCheckout(e: React.FormEvent) {
     e.preventDefault(); setError(null);
     if (!lines.length) { setError("Keranjang kosong."); return; }
     setLoading(true);
     const { data: order, error: oe } = await supabase.from("orders").insert({
       umkm_id: umkm.id, nama_pelanggan: nama, no_hp: noHp,
-      alamat: metode === "delivery" ? alamat : null, metode, catatan, status: "pending", total, user_id: user?.id || null,
+      alamat: metode === "delivery" ? alamat : null, metode, metode_bayar: metodeBayar, catatan, status: "pending", total, user_id: user?.id || null,
     }).select().single();
     if (oe || !order) { setError(oe?.message || "Gagal."); setLoading(false); return; }
     const payload = lines.map((l) => ({ order_id: order.id, menu_item_id: l.item.id, nama: l.item.nama, harga: l.item.harga, qty: l.qty }));
     const { error: ie } = await supabase.from("order_items").insert(payload);
     if (ie) { setError(ie.message); setLoading(false); return; }
-    fetch("/api/telegram", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ umkm_nama: umkm.nama_usaha, order_id: order.id, nama_pelanggan: nama, total, items: lines.map((l) => ({ qty: l.qty, nama: l.item.nama, harga: l.item.harga })), catatan }) }).catch(() => {});
-    router.push(`/pesanan/${order.id}`);
+    fetch("/api/telegram", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ umkm_nama: umkm.nama_usaha, order_id: order.id, nama_pelanggan: nama, total, metode_bayar: METODE_BAYAR_LABEL[metodeBayar], items: lines.map((l) => ({ qty: l.qty, nama: l.item.nama, harga: l.item.harga })), catatan }) }).catch(() => {});
+    setOrderDone({ ...order, metode_bayar: metodeBayar });
+    setShowCheckout(false);
+  }
+
+  if (orderDone) {
+    return (
+      <main className="min-h-screen bg-sf-bg flex items-center justify-center p-4">
+        <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-card text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sf-green/10">
+            <Check className="h-8 w-8 text-sf-green" />
+          </div>
+          <h2 className="text-lg font-extrabold text-sf-text">Pesanan Berhasil!</h2>
+          <p className="mt-1 text-sm text-sf-text-secondary">Kode pesanan kamu:</p>
+          <p className="mt-1 text-xl font-extrabold text-sf-red">#{orderDone.id.slice(0, 8).toUpperCase()}</p>
+
+          {orderDone.metode_bayar !== "cash" && infoBayar && (
+            <div className="mt-5 rounded-2xl bg-sf-bg p-4 text-left">
+              <p className="mb-2 text-xs font-bold text-sf-text">Infomasi Pembayaran</p>
+              {orderDone.metode_bayar === "transfer" && infoBayar.bank_nama && (
+                <div className="space-y-1.5 text-sm">
+                  <p className="font-medium text-sf-text">{infoBayar.bank_nama}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-extrabold text-sf-text">{infoBayar.bank_rekening}</p>
+                    <button onClick={() => copyText(infoBayar.bank_rekening, "rekening")} className="text-sf-red">
+                      {copied === "rekening" ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    </button>
+                  </div>
+                  <p className="text-xs text-sf-text-secondary">a.n. {infoBayar.bank_atas_nama}</p>
+                  <p className="mt-2 font-bold text-sf-text">Transfer sebesar: {formatRupiah(total)}</p>
+                </div>
+              )}
+              {orderDone.metode_bayar === "ewallet" && infoBayar.ewallet_nama && (
+                <div className="space-y-1.5 text-sm">
+                  <p className="font-medium text-sf-text">{infoBayar.ewallet_nama}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-extrabold text-sf-text">{infoBayar.ewallet_nomor}</p>
+                    <button onClick={() => copyText(infoBayar.ewallet_nomor, "ewallet")} className="text-sf-red">
+                      {copied === "ewallet" ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    </button>
+                  </div>
+                  <p className="mt-2 font-bold text-sf-text">Transfer sebesar: {formatRupiah(total)}</p>
+                </div>
+              )}
+              {orderDone.metode_bayar === "qris" && infoBayar.qris_url && (
+                <div className="text-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={infoBayar.qris_url} alt="QRIS" className="mx-auto h-48 w-48 rounded-xl object-contain" />
+                  <p className="mt-2 text-xs text-sf-text-secondary">Scan QR di atas untuk bayar</p>
+                  <p className="mt-1 font-bold text-sf-text">{formatRupiah(total)}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {orderDone.metode_bayar === "cash" && (
+            <div className="mt-4 rounded-2xl bg-sf-bg p-4">
+              <p className="text-sm font-medium text-sf-text">Bayar di tempat saat pesanan diambil/diantar</p>
+            </div>
+          )}
+
+          <div className="mt-5 flex flex-col gap-2">
+            <button onClick={() => router.push(`/pesanan/${orderDone.id}`)} className="rounded-xl bg-sf-red py-3 text-sm font-bold text-white">Lacak Pesanan</button>
+            <button onClick={() => { setOrderDone(null); setCart({}); }} className="rounded-xl border border-sf-border py-3 text-sm font-medium text-sf-text-secondary">Kembali ke Menu</button>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -173,7 +255,7 @@ export default function StoreClient({ umkm, menu }: { umkm: Umkm; menu: MenuItem
       {/* Checkout Modal */}
       {showCheckout && (
         <div className="fixed inset-0 z-30 flex items-end bg-black/40 sm:items-center sm:justify-center">
-          <div className="max-h-[85vh] w-full overflow-y-auto rounded-t-3xl bg-white sm:max-w-md sm:rounded-3xl">
+          <div className="max-h-[90vh] w-full overflow-y-auto rounded-t-3xl bg-white sm:max-w-md sm:rounded-3xl">
             <div className="sticky top-0 flex items-center justify-between border-b border-sf-border bg-white px-5 py-4 rounded-t-3xl sm:rounded-t-3xl">
               <h2 className="text-base font-bold text-sf-text">Konfirmasi Pesanan</h2>
               <button onClick={() => setShowCheckout(false)} className="flex h-8 w-8 items-center justify-center rounded-full bg-sf-bg"><X className="h-4 w-4 text-sf-text-secondary" /></button>
@@ -189,15 +271,39 @@ export default function StoreClient({ umkm, menu }: { umkm: Umkm; menu: MenuItem
               <form onSubmit={handleCheckout} className="space-y-3">
                 <input required value={nama} onChange={(e) => setNama(e.target.value)} placeholder="Nama lengkap" className="w-full rounded-xl border border-sf-border bg-sf-bg px-3.5 py-2.5 text-sm outline-none focus:border-sf-red" />
                 <input required value={noHp} onChange={(e) => setNoHp(e.target.value)} placeholder="No. HP / WhatsApp" className="w-full rounded-xl border border-sf-border bg-sf-bg px-3.5 py-2.5 text-sm outline-none focus:border-sf-red" />
-                <div className="flex gap-3">
-                  <label className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-medium transition ${metode === "pickup" ? "border-sf-red bg-sf-red/5 text-sf-red" : "border-sf-border bg-sf-bg text-sf-text-secondary"}`}>
-                    <input type="radio" checked={metode === "pickup"} onChange={() => setMetode("pickup")} className="sr-only" /> Ambil Sendiri
-                  </label>
-                  <label className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-medium transition ${metode === "delivery" ? "border-sf-red bg-sf-red/5 text-sf-red" : "border-sf-border bg-sf-bg text-sf-text-secondary"}`}>
-                    <input type="radio" checked={metode === "delivery"} onChange={() => setMetode("delivery")} className="sr-only" /> Antar
-                  </label>
+
+                {/* Metode Pengantaran */}
+                <div>
+                  <p className="mb-1.5 text-xs font-bold text-sf-text">Metode Pengantaran</p>
+                  <div className="flex gap-3">
+                    <label className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-medium transition ${metode === "pickup" ? "border-sf-red bg-sf-red/5 text-sf-red" : "border-sf-border bg-sf-bg text-sf-text-secondary"}`}>
+                      <input type="radio" checked={metode === "pickup"} onChange={() => setMetode("pickup")} className="sr-only" /> Ambil Sendiri
+                    </label>
+                    <label className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-medium transition ${metode === "delivery" ? "border-sf-red bg-sf-red/5 text-sf-red" : "border-sf-border bg-sf-bg text-sf-text-secondary"}`}>
+                      <input type="radio" checked={metode === "delivery"} onChange={() => setMetode("delivery")} className="sr-only" /> Antar
+                    </label>
+                  </div>
                 </div>
+
                 {metode === "delivery" && <textarea required value={alamat} onChange={(e) => setAlamat(e.target.value)} placeholder="Alamat pengantaran" className="w-full rounded-xl border border-sf-border bg-sf-bg px-3.5 py-2.5 text-sm outline-none focus:border-sf-red" rows={2} />}
+
+                {/* Metode Pembayaran */}
+                <div>
+                  <p className="mb-1.5 text-xs font-bold text-sf-text">Metode Pembayaran</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(["cash", "transfer", "ewallet", "qris"] as MetodeBayar[]).map((m) => {
+                      const Icon = METODE_BAYAR_ICON[m];
+                      return (
+                        <label key={m} className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition ${metodeBayar === m ? "border-sf-red bg-sf-red/5 text-sf-red" : "border-sf-border bg-sf-bg text-sf-text-secondary"}`}>
+                          <input type="radio" checked={metodeBayar === m} onChange={() => setMetodeBayar(m)} className="sr-only" />
+                          <Icon className="h-4 w-4 shrink-0" />
+                          <span>{METODE_BAYAR_LABEL[m]}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 <input value={catatan} onChange={(e) => setCatatan(e.target.value)} placeholder="Catatan (opsional)" className="w-full rounded-xl border border-sf-border bg-sf-bg px-3.5 py-2.5 text-sm outline-none focus:border-sf-red" />
                 {error && <p className="rounded-lg bg-sf-red/10 px-3 py-2 text-xs text-sf-red">{error}</p>}
                 <button disabled={loading} className="w-full rounded-xl bg-sf-red py-3 text-sm font-bold text-white transition hover:bg-sf-red-dark disabled:opacity-50">

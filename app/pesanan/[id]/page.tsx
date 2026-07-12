@@ -28,6 +28,7 @@ export default async function OrderStatusPage({ params }: { params: { id: string
         no_hp: o.no_hp,
         alamat: o.alamat,
         metode: o.metode,
+        metode_bayar: (o as any).metode_bayar || "cash",
         catatan: o.catatan,
         status: o.status,
         total: o.total,

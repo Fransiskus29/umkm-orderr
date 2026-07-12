@@ -203,15 +203,15 @@ export default function StoreClient({ umkm, menu }: { umkm: Umkm; menu: MenuItem
             {filteredMenu.map((item) => {
               const qty = cart[item.id]?.qty ?? 0;
               return (
-                <div key={item.id} className="flex gap-3 rounded-2xl bg-white p-3 shadow-card md:p-0 md:overflow-hidden">
+                <div key={item.id} className="flex flex-col overflow-hidden rounded-2xl bg-white shadow-card md:block">
                   {item.foto_url && (
-                    <div className="relative h-20 w-20 md:h-full md:w-full md:max-h-44 shrink-0 overflow-hidden rounded-xl md:rounded-none md:rounded-t-2xl">
+                    <div className="relative h-40 w-full shrink-0 overflow-hidden md:h-44">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={item.foto_url} alt={item.nama} className="h-full w-full object-cover" />
                       {qty > 0 && <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-sf-red text-[10px] font-bold text-white shadow">{qty}</div>}
                     </div>
                   )}
-                  <div className="min-w-0 flex-1 md:p-4">
+                  <div className="p-3 md:p-4">
                     <h3 className="text-sm font-bold text-sf-text line-clamp-1 md:text-base">{item.nama}</h3>
                     {item.deskripsi && <p className="mt-0.5 text-xs text-sf-text-secondary line-clamp-2">{item.deskripsi}</p>}
                     <div className="mt-2 flex items-center justify-between md:mt-3">
